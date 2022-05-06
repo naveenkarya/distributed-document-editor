@@ -10,14 +10,14 @@ public class DocumentController {
     @Autowired
     DocumentRepository documentRepository;
 
-    @PostMapping("/add")
-    public ResponseEntity<String> greeting(@RequestBody Document document) {
+    @PostMapping("/document/add")
+    public ResponseEntity<String> addDocument(@RequestBody Document document) {
         documentRepository.save(document);
         return ResponseEntity.ok(document.id);
     }
 
     @GetMapping("/document/{documentId}")
-    public ResponseEntity<Document> greeting(@PathVariable String documentId) {
+    public ResponseEntity<Document> getDocument(@PathVariable String documentId) {
         return ResponseEntity.ok(documentRepository.findById(documentId).get());
     }
 }
