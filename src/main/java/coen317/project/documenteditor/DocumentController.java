@@ -11,13 +11,13 @@ public class DocumentController {
     DocumentRepository documentRepository;
 
     @PostMapping("/document/add")
-    public ResponseEntity<String> addDocument(@RequestBody Document document) {
+    public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document) {
         documentRepository.save(document);
-        return ResponseEntity.ok(document.id);
+        return ResponseEntity.ok(document);
     }
 
     @GetMapping("/document/{documentId}")
-    public ResponseEntity<Document> getDocument(@PathVariable String documentId) {
+    public ResponseEntity<WordDocument> getDocument(@PathVariable String documentId) {
         return ResponseEntity.ok(documentRepository.findById(documentId).get());
     }
 }
