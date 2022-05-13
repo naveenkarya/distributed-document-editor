@@ -9,18 +9,42 @@ $('textarea#tiny').tinymce({
     ],
     toolbar: 'undo redo | blocks | bold italic backcolor | ' +
       'alignleft aligncenter alignright alignjustify | ' +
-      'bullist numlist outdent indent | removeformat | help'
+      'bullist numlist outdent indent | removeformat | help',
+    init_instance_callback: function(editor){
+        // TODO: get content from database
+        editor.setContent("<p>Hello world</p>");  
+    }
   });
 
-$('button#save').on('click', function(){
-    // TODO: pull document ID from database with previously saved content
-    saveDoc(0, $('input#docName').val(), tinymce.activeEditor.getContent());
+const modal = $('#exampleModal');
+
+$(function(){
+    // forces user to click close button
+    modal.modal({backdrop: 'static', keyboard: false});
 });
 
 $('#editModeSwitch').on('change',function(){
-    if(this.checked==false){
-        // TODO: add modal, confirm save/ignore changes, redirect to read
-    }
+    if(this.checked==false) modal.modal('show');
+});
+
+$('button.close').on('click', function(){
+    modal.modal('hide');
+    $('#editModeSwitch').prop('checked',true);
+})
+
+$('button#save').on('click', function(){
+    // TODO: pull document ID from database
+    saveDoc(0, $('input#docName').val(), tinymce.activeEditor.getContent());
+});
+
+$('button#save-changes').on('click', function(){
+    saveDoc(0, $('input#docName').val(), tinymce.activeEditor.getContent());
+    returnToRead();
+});
+
+$('button#ignore-changes').on('click', function(){
+    console.log("Danger! Not saving");
+    returnToRead();
 });
 
 function saveDoc(id, name, content){
@@ -29,3 +53,6 @@ function saveDoc(id, name, content){
     console.log(`Document content:\n${content}`);
     // TODO: write to database
 }
+
+// TODO: return to read page
+function returnToRead(){}

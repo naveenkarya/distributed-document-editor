@@ -1,5 +1,10 @@
 const modal = $('#exampleModal');
 
+$(function(){
+    // forces user to click close button
+    modal.modal({backdrop: 'static', keyboard: false});
+});
+
 $('#editModeSwitch').on('change',function(){
     if(this.checked==true){
         modal.modal('show');
