@@ -36,4 +36,8 @@ public class WordDocument {
         this.title = title;
         this.content = content;
     }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
 }
