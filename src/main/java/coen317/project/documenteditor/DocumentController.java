@@ -1,9 +1,11 @@
 package coen317.project.documenteditor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -16,6 +18,7 @@ public class DocumentController {
     public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document) {
         documentRepository.save(document);
         return ResponseEntity.ok(document);
+
     }
 
     @PostMapping("/document/{documentId}")
@@ -33,4 +36,5 @@ public class DocumentController {
     public ResponseEntity<WordDocument> getDocument(@PathVariable String documentId) {
         return ResponseEntity.ok(documentRepository.findById(documentId).get());
     }
+
 }
