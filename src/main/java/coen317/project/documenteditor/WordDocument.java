@@ -40,6 +40,12 @@ public class WordDocument {
         this.content = content;
     }
 
+    public WordDocument(WordDocument document) {
+        this.author = document.author;
+        this.title = document.title;
+        this.content = document.content;
+    }
+
     public void setContent(String content) {
         this.content = content;
     }

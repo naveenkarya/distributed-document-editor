@@ -13,10 +13,13 @@ public class DocumentController {
 
     @Autowired
     DocumentRepository documentRepository;
+    @Autowired
+    ReplicationService replicationService;
 
     @PostMapping("/document/add")
     public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document) {
-        documentRepository.save(document);
+        WordDocument savedDocument = documentRepository.save(document);
+        replicationService.replicate(savedDocument);
         return ResponseEntity.ok(document);
 
     }

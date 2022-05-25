@@ -22,7 +22,7 @@ public class PingService {
     int self;
 
 
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 10000)
     public void sendPingTo() {
         nodeMap.entrySet().forEach(entry -> {
             System.out.println("Sending ping to " + entry.getValue());

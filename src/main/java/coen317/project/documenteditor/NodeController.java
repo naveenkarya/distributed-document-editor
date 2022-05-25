@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class NodeController {
 
-
     @GetMapping("/ping/{number}")
     public ResponseEntity<Void> ping(@PathVariable String number) {
         System.out.println("Ping from " + number);
