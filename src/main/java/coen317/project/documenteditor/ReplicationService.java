@@ -34,4 +34,17 @@ public class ReplicationService {
             });
         }
     }
+
+    public void replicate(String content, String documentId) {
+        if (leader == self) {
+            nodeMap.entrySet().forEach(entry -> {
+                try {
+                    restTemplate.postForEntity(entry.getValue() + "/document/"+documentId, content, WordDocument.class);
+                    System.out.println("Replicated");
+                } catch (Exception e) {
+                    System.out.println("Unable to replicate to node: " + entry.getKey() + e.getMessage());
+                }
+            });
+        }
+    }
 }

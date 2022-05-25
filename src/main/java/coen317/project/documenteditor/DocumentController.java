@@ -18,6 +18,7 @@ public class DocumentController {
 
     @PostMapping("/document/add")
     public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document) {
+        document.setVersion(null);
         WordDocument savedDocument = documentRepository.save(document);
         replicationService.replicate(savedDocument);
         return ResponseEntity.ok(document);
@@ -30,6 +31,8 @@ public class DocumentController {
         if (doc.isPresent()) {
             WordDocument wordDocument = doc.get();
             wordDocument.setContent(content);
+            documentRepository.save(wordDocument);
+            replicationService.replicate(content, documentId);
             return ResponseEntity.ok(wordDocument);
         }
         return ResponseEntity.notFound().build();
