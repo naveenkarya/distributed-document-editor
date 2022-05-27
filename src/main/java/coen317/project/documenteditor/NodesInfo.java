@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -13,6 +15,7 @@ import java.util.stream.Collectors;
 @Component
 public class NodesInfo {
     private Map<Integer, String> nodeMap;
+    private Map<Integer, Timer> timerMap = new HashMap<>();
     @Value("${self}")
     private int self;
 
@@ -22,6 +25,10 @@ public class NodesInfo {
     @Value("#{${nodeMap}}")
     public void setNodeMap(Map<Integer, String> nodeMap) {
         this.nodeMap = nodeMap.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        Timer timer = new Timer();
+        SomeTask someTask = new SomeTask(2);
+        timer.schedule(someTask, 5000);
+        timerMap.put(2, timer);
     }
 
     public synchronized void removeNode(Integer node) {

@@ -28,14 +28,14 @@ public class LeaderElectionService {
             String uri = UriComponentsBuilder.newInstance()
                     .scheme("http").host(entry.getValue())
                     .path(ELECT_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
-            System.out.println("Sending election message to " + uri);
+            log.info("Sending election message to " + uri);
             try {
                 ResponseEntity<Void> response = restTemplate.getForEntity(uri, Void.class);
                 if (response.getStatusCode() == HttpStatus.ACCEPTED) {
                     count++;
                 }
             } catch (Exception ce) {
-                System.out.println("Cannot connect to node: " + entry.getKey());
+                log.info("Cannot connect to node: " + entry.getKey());
             }
         }
         if (count == 0) {
@@ -45,11 +45,11 @@ public class LeaderElectionService {
                 String uri = UriComponentsBuilder.newInstance()
                         .scheme("http").host(entry.getValue())
                         .path(ELECTED_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
-                System.out.println("Sending elected message to " + entry.getKey());
+                log.info("Sending elected message to " + entry.getKey());
                 try {
                     restTemplate.getForEntity(uri, Void.class);
                 } catch (Exception ce) {
-                    System.out.println("Cannot connect to node: " + entry.getKey());
+                    log.info("Cannot connect to node: " + entry.getKey());
                 }
             }
         }

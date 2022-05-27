@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Timer;
+
 @RestController
 @Slf4j
 public class NodeController {
@@ -18,8 +20,15 @@ public class NodeController {
     public static final String ELECTED_PATH = "/elected/{newLeader}";
 
     @GetMapping(PING_PATH)
-    public ResponseEntity<Void> ping(@PathVariable String number) {
-        System.out.println("Ping from " + number);
+    public ResponseEntity<Void> ping(@PathVariable int number) {
+        log.info("Ping from {}", number);
+        Timer timer = nodesInfo.getTimerMap().get(number);
+        if(timer != null) {
+            timer.cancel();
+            timer = new Timer();
+            timer.schedule(new SomeTask(number), 5000);
+            nodesInfo.getTimerMap().put(number, timer);
+        }
         return ResponseEntity.ok().build();
     }
 
