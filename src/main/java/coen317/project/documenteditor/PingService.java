@@ -23,22 +23,20 @@ public class PingService {
 
     @Scheduled(fixedRate = 1000)
     public void sendPingTo() {
+        log.info("Node {} is connected to {}", nodesInfo.getSelf(), nodesInfo.getNodeMap().keySet());
         if (!nodesInfo.isLeader()) {
             try {
                 String url = UriComponentsBuilder.newInstance()
                         .scheme("http").host(nodesInfo.getNodeMap().get(nodesInfo.getLeader()))
                         .path(PING_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
-                log.info("Leader node url: {}", url);
+                log.info("Leader node: {}", nodesInfo.getLeader());
                 restTemplate.getForObject(url, Void.class);
             } catch (Exception ce) {
                 log.info("Cannot connect to leader node: {}", nodesInfo.getLeader());
-                nodesInfo.removeLeader();
+                //nodesInfo.removeLeader();
                 leaderElectionService.electNewLeader();
             }
-        } else {
-            //TODO: Reset Timeout for the incoming node
         }
-
     }
 
     private SimpleClientHttpRequestFactory getClientHttpRequestFactory() {
