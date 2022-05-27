@@ -26,7 +26,7 @@ public class ReplicationService {
             });
         }
     }
-
+    @Async
     public void replicate(String content, String documentId) {
         if (nodesInfo.isLeader()) {
             nodesInfo.getNodeMap().entrySet().forEach(entry -> {

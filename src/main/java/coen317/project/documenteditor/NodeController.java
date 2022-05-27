@@ -16,8 +16,9 @@ public class NodeController {
     @Autowired
     NodesInfo nodesInfo;
     public static final String PING_PATH = "/ping/{number}";
-    public static final String ELECT_PATH = "/elect/{fromNode}";
+    public static final String ELECTION_PATH = "/elect/{fromNode}";
     public static final String ELECTED_PATH = "/elected/{newLeader}";
+    public static final String REMOVE_NODE = "/remove/{node}";
 
     @GetMapping(PING_PATH)
     public ResponseEntity<Void> ping(@PathVariable int number) {
@@ -26,13 +27,13 @@ public class NodeController {
         if(timer != null) {
             timer.cancel();
             timer = new Timer();
-            timer.schedule(new SomeTask(number), 5000);
+            timer.schedule(new RemoveFailedNode(number, nodesInfo), 2000);
             nodesInfo.getTimerMap().put(number, timer);
         }
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping(ELECT_PATH)
+    @GetMapping(ELECTION_PATH)
     public ResponseEntity<Void> elect(@PathVariable int fromNode) {
         if (fromNode < nodesInfo.getSelf()) {
             return ResponseEntity.accepted().build();
@@ -44,6 +45,12 @@ public class NodeController {
     public ResponseEntity<Void> elected(@PathVariable int newLeader) {
         log.info("Self: {}. New Leader elected: {}", nodesInfo.getSelf(), newLeader);
         nodesInfo.setNewLeader(newLeader);
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping(REMOVE_NODE)
+    public ResponseEntity<Void> removeNode(@PathVariable int node) {
+        log.info("Self: {}. Request to remove node: {}", nodesInfo.getSelf(), node);
+        nodesInfo.removeNode(node);
         return ResponseEntity.ok().build();
     }
 }

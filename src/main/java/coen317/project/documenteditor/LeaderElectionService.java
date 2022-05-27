@@ -11,7 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Map;
 
 import static coen317.project.documenteditor.NodeController.ELECTED_PATH;
-import static coen317.project.documenteditor.NodeController.ELECT_PATH;
+import static coen317.project.documenteditor.NodeController.ELECTION_PATH;
 
 @Service
 @Slf4j
@@ -24,18 +24,19 @@ public class LeaderElectionService {
     public void electNewLeader() {
         int count = 0;
         for (Map.Entry<Integer, String> entry : nodesInfo.getNodeMap().entrySet()) {
-            if (entry.getKey() <= nodesInfo.getSelf()) continue;
-            String uri = UriComponentsBuilder.newInstance()
-                    .scheme("http").host(entry.getValue())
-                    .path(ELECT_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
-            log.info("Sending election message to " + uri);
-            try {
-                ResponseEntity<Void> response = restTemplate.getForEntity(uri, Void.class);
-                if (response.getStatusCode() == HttpStatus.ACCEPTED) {
-                    count++;
+            if (entry.getKey() > nodesInfo.getSelf()) {
+                String uri = UriComponentsBuilder.newInstance()
+                        .scheme("http").host(entry.getValue())
+                        .path(ELECTION_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
+                log.info("Sending election message to " + uri);
+                try {
+                    ResponseEntity<Void> response = restTemplate.getForEntity(uri, Void.class);
+                    if (response.getStatusCode() == HttpStatus.ACCEPTED) {
+                        count++;
+                    }
+                } catch (Exception ce) {
+                    log.info("Cannot connect to node: " + entry.getKey());
                 }
-            } catch (Exception ce) {
-                log.info("Cannot connect to node: " + entry.getKey());
             }
         }
         if (count == 0) {
@@ -51,6 +52,7 @@ public class LeaderElectionService {
                 } catch (Exception ce) {
                     log.info("Cannot connect to node: " + entry.getKey());
                 }
+                // TODO: Send Elected message to Load Balancer
             }
         }
     }

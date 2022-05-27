@@ -23,6 +23,7 @@ public class PingService {
 
     @Scheduled(fixedRate = 1000)
     public void sendPingTo() {
+        log.info("Node {} is connected to {}", nodesInfo.getSelf(), nodesInfo.getNodeMap().keySet());
         if (!nodesInfo.isLeader()) {
             try {
                 String url = UriComponentsBuilder.newInstance()
@@ -32,7 +33,7 @@ public class PingService {
                 restTemplate.getForObject(url, Void.class);
             } catch (Exception ce) {
                 log.info("Cannot connect to leader node: {}", nodesInfo.getLeader());
-                nodesInfo.removeLeader();
+                //nodesInfo.removeLeader();
                 leaderElectionService.electNewLeader();
             }
         }

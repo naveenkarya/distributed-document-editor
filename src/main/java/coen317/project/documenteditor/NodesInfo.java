@@ -25,10 +25,6 @@ public class NodesInfo {
     @Value("#{${nodeMap}}")
     public void setNodeMap(Map<Integer, String> nodeMap) {
         this.nodeMap = nodeMap.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-        Timer timer = new Timer();
-        SomeTask someTask = new SomeTask(2);
-        timer.schedule(someTask, 5000);
-        timerMap.put(2, timer);
     }
 
     public synchronized void removeNode(Integer node) {
