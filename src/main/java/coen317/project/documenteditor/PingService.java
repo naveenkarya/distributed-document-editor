@@ -1,38 +1,50 @@
 package coen317.project.documenteditor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.SocketException;
-import java.util.HashMap;
-import java.util.Map;
+import static coen317.project.documenteditor.NodeController.PING_PATH;
 
 @Service
+@Slf4j
 public class PingService {
-    RestTemplate restTemplate = new RestTemplate();
+    RestTemplate restTemplate = new RestTemplate(getClientHttpRequestFactory());
 
-    @Value("#{${nodeMap}}")
-    private Map<Integer,String> nodeMap;
+    @Autowired
+    NodesInfo nodesInfo;
 
-    @Value("${self}")
-    int self;
+    @Autowired
+    LeaderElectionService leaderElectionService;
 
-
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 1000)
     public void sendPingTo() {
-        nodeMap.entrySet().forEach(entry -> {
-            System.out.println("Sending ping to " + entry.getValue());
-            try{
-                restTemplate.getForObject(entry.getValue() + "/ping/" + self, String.class);
+        if (!nodesInfo.isLeader()) {
+            try {
+                String url = UriComponentsBuilder.newInstance()
+                        .scheme("http").host(nodesInfo.getNodeMap().get(nodesInfo.getLeader()))
+                        .path(PING_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
+                log.info("Leader node url: {}", url);
+                restTemplate.getForObject(url, Void.class);
+            } catch (Exception ce) {
+                log.info("Cannot connect to leader node: {}", nodesInfo.getLeader());
+                nodesInfo.removeLeader();
+                leaderElectionService.electNewLeader();
             }
-            catch (Exception ce) {
-                System.out.println("Cannot connect to node: " + entry.getKey());
-            }
-        });
+        } else {
+            //TODO: Reset Timeout for the incoming node
+        }
 
+    }
+
+    private SimpleClientHttpRequestFactory getClientHttpRequestFactory() {
+        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(200);
+        clientHttpRequestFactory.setReadTimeout(200);
+        return clientHttpRequestFactory;
     }
 }
