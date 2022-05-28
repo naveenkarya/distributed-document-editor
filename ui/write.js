@@ -1,3 +1,5 @@
+const e = require("express");
+
 $('textarea#tiny').tinymce({
     height: 500,
     menubar: false,
@@ -23,12 +25,11 @@ $(function(){
     // forces user to click close button
     modal1.modal({backdrop: 'static', keyboard: false});
     modal2.modal({backdrop: 'static', keyboard: false});
-    if(!$.session.get("email")){
-        // show pop up to get email
-        modal.modal('show');
-        
-        // $.session.set("email", "Hello World!");
-    }
+    // if(!$.session.get("author")){
+    //     // show pop up to get email
+    //     // modal.modal('show');
+    //     sessionStorage.setItem("author", 'alexa');
+    // }
 });
 
 $('#editModeSwitch').on('change',function(){
@@ -59,13 +60,24 @@ function saveDoc(id, name, content){
     console.log(`Sending content for document ${id} to db`);
     console.log(`Document name: ${name}`);
     console.log(`Document content:\n${content}`);
+    let requestUrl = 'http://localhost:8080/document/'+id; // update this to whichever POST is
+    if(!sessionStorage.getItem('author')){
+        requestUrl = 'http://localhost:8080/document/add';
+        sessionStorage.setItem("author", 'alexa');
+    }
     // TODO: write to database
-    
+    let docObj = {
+        title: name,
+        content: content,
+        author: sessionStorage.getItem('author')
+    };
     $.ajax({
         method: 'POST',
-        url: "http://localhost:8080/document/add",
+        url: requestUrl,
+        data: JSON.stringify(docObj),
         complete: function(){ // should be success
-            window.location = './write.html';
+            // window.location = './write.html';
+            console.log("Complete!");
         },
     });
 }

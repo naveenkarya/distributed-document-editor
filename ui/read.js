@@ -27,6 +27,7 @@ $('button#edit-request').on('click', function(){
     if(user){
         console.log(`Checking with leader for user ${user}...`);
         // TODO: check with leader, redirect to write page if successful
+        window.location = './write.html';
     } else {
         console.log('No email provided')
     }
