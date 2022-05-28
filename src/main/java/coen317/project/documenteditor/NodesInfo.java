@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,9 +23,12 @@ public class NodesInfo {
     @Value("${leader}")
     private int leader;
 
+    @Value("${load-balancer}")
+    private String loadBalancer;
+
     @Value("#{${nodeMap}}")
     public void setNodeMap(Map<Integer, String> nodeMap) {
-        this.nodeMap = nodeMap.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        this.nodeMap = new ConcurrentHashMap<>(nodeMap);
     }
 
     public synchronized void removeNode(Integer node) {

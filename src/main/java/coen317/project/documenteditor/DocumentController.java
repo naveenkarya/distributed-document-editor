@@ -11,12 +11,14 @@ import java.util.Optional;
 @RestController
 public class DocumentController {
 
+    public static final String DOCUMENT_ADD_PATH = "/document/add";
+    public static final String DOCUMENT_UPDATE_PATH = "/document/{documentId}";
     @Autowired
     DocumentRepository documentRepository;
     @Autowired
     ReplicationService replicationService;
 
-    @PostMapping("/document/add")
+    @PostMapping(DOCUMENT_ADD_PATH)
     public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document) {
         document.setVersion(null);
         WordDocument savedDocument = documentRepository.save(document);
@@ -25,7 +27,7 @@ public class DocumentController {
 
     }
 
-    @PostMapping("/document/{documentId}")
+    @PostMapping(DOCUMENT_UPDATE_PATH)
     public ResponseEntity<WordDocument> updateDocument(@RequestBody String content, @PathVariable String documentId) {
         Optional<WordDocument> doc = documentRepository.findById(documentId);
         if (doc.isPresent()) {
@@ -38,7 +40,7 @@ public class DocumentController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/document/{documentId}")
+    @GetMapping(DOCUMENT_UPDATE_PATH)
     public ResponseEntity<WordDocument> getDocument(@PathVariable String documentId) {
         return ResponseEntity.ok(documentRepository.findById(documentId).get());
     }

@@ -22,7 +22,7 @@ public class NodeController {
 
     @GetMapping(PING_PATH)
     public ResponseEntity<Void> ping(@PathVariable int number) {
-        log.info("Ping from {}", number);
+        //log.info("Ping from {}", number);
         Timer timer = nodesInfo.getTimerMap().get(number);
         if(timer != null) {
             timer.cancel();

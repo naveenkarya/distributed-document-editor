@@ -11,6 +11,7 @@ import static coen317.project.documenteditor.NodeController.REMOVE_NODE;
 
 @Slf4j
 public class RemoveFailedNode extends TimerTask {
+    public static final String LB_REMOVE_NODE_PATH = "/node/remove/{nodeid}";
     int node;
     NodesInfo nodesInfo;
 
@@ -34,7 +35,17 @@ public class RemoveFailedNode extends TimerTask {
             } catch (Exception ce) {
                 log.info("Cannot connect to node: " + entry.getKey());
             }
-            // TODO: Update Load Balancer - remove node
+
+            // Remove failed node in Load Balancer
+            String lbUrl = UriComponentsBuilder.newInstance()
+                    .scheme("http").host(nodesInfo.getLoadBalancer())
+                    .path(LB_REMOVE_NODE_PATH).buildAndExpand(node).toUriString();
+            log.info("Sending failed node message to Load balancer: {}", nodesInfo.getLoadBalancer());
+            try {
+                restTemplate.getForEntity(lbUrl, Void.class);
+            } catch (Exception ce) {
+                log.info("Cannot connect to Load Balancer");
+            }
         }
     }
 

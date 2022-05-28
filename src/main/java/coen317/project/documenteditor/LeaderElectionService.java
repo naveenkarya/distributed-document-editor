@@ -20,6 +20,7 @@ public class LeaderElectionService {
     RestTemplate restTemplate = new RestTemplate();
     @Autowired
     NodesInfo nodesInfo;
+    private static final String LB_LEADER_PATH = "/node/leader/{leader}";
 
     public void electNewLeader() {
         int count = 0;
@@ -43,16 +44,25 @@ public class LeaderElectionService {
             log.info("Electing self: {} as the new leader.", nodesInfo.getSelf());
             nodesInfo.setNewLeader(nodesInfo.getSelf());
             for (Map.Entry<Integer, String> entry : nodesInfo.getNodeMap().entrySet()) {
-                String uri = UriComponentsBuilder.newInstance()
+                String url = UriComponentsBuilder.newInstance()
                         .scheme("http").host(entry.getValue())
                         .path(ELECTED_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
                 log.info("Sending elected message to " + entry.getKey());
                 try {
-                    restTemplate.getForEntity(uri, Void.class);
+                    restTemplate.getForEntity(url, Void.class);
                 } catch (Exception ce) {
                     log.info("Cannot connect to node: " + entry.getKey());
                 }
-                // TODO: Send Elected message to Load Balancer
+                // Update Leader in Load Balancer
+                String lbUrl = UriComponentsBuilder.newInstance()
+                        .scheme("http").host(nodesInfo.getLoadBalancer())
+                        .path(LB_LEADER_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
+                log.info("Sending elected message to Load balancer");
+                try {
+                    restTemplate.getForEntity(lbUrl, Void.class);
+                } catch (Exception ce) {
+                    log.info("Cannot connect to Load Balancer");
+                }
             }
         }
     }
