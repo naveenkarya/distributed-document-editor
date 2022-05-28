@@ -2,9 +2,9 @@ package coen317.project.documenteditor;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface DocumentRepository extends MongoRepository<WordDocument, String> {
+import java.util.List;
+import java.util.Map;
 
-    //public Document findByFirstName(String firstName);
-    //public List<Document> findByLastName(String lastName);
+public interface DocumentRepository extends MongoRepository<WordDocument, String> {
 
 }
