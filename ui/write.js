@@ -52,6 +52,11 @@ function saveDoc(id, name, content){
     console.log(`Document name: ${name}`);
     console.log(`Document content:\n${content}`);
     // TODO: write to database
+    // new document or update?
+    if(!$.session.get("email")){
+        // make pop up for email
+        // 
+    }
 }
 
 // TODO: return to read page
