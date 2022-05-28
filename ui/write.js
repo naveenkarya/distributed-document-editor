@@ -10,17 +10,25 @@ $('textarea#tiny').tinymce({
     toolbar: 'undo redo | blocks | bold italic backcolor | ' +
       'alignleft aligncenter alignright alignjustify | ' +
       'bullist numlist outdent indent | removeformat | help',
-    init_instance_callback: function(editor){
-        // TODO: get content from database
-        editor.setContent("<p>Hello world</p>");  
-    }
+    // init_instance_callback: function(editor){
+    //     // TODO: get content from database
+    //     editor.setContent("<p>Hello world</p>");  
+    // }
   });
 
-const modal = $('#exampleModal');
+const modal1 = $('#save-ignore-modal');
+const modal2 = $('#email-modal');
 
 $(function(){
     // forces user to click close button
-    modal.modal({backdrop: 'static', keyboard: false});
+    modal1.modal({backdrop: 'static', keyboard: false});
+    modal2.modal({backdrop: 'static', keyboard: false});
+    if(!$.session.get("email")){
+        // show pop up to get email
+        modal.modal('show');
+        
+        // $.session.set("email", "Hello World!");
+    }
 });
 
 $('#editModeSwitch').on('change',function(){
@@ -52,11 +60,14 @@ function saveDoc(id, name, content){
     console.log(`Document name: ${name}`);
     console.log(`Document content:\n${content}`);
     // TODO: write to database
-    // new document or update?
-    if(!$.session.get("email")){
-        // make pop up for email
-        // 
-    }
+    
+    $.ajax({
+        method: 'POST',
+        url: "http://localhost:8080/document/add",
+        complete: function(){ // should be success
+            window.location = './write.html';
+        },
+    });
 }
 
 // TODO: return to read page

@@ -2,18 +2,20 @@ const template = $('tr#template');
 // template.hide();
 
 $.get("http://localhost:8080/document/all", function(data) {
-    for(document of data){
-        // assuming document={name: , }
+    for(doc of data){
         const newDoc = template.clone();
-        newDoc.find('td.doc-name').html(document.title);
-        newDoc.find('td.version').html(document.version);
-        newDoc[0].id=document.id;
+        newDoc.find('td.doc-name').html(doc.title);
+        newDoc.find('td.version').html(doc.version);
+        newDoc[0].id=doc.id;
         $("tbody").append(newDoc);
         newDoc.show();
     }
 });
 
-// $()
+$('tr').on('click', function(){
+    sessionStorage.setItem("currentDocumentID", $(this)[0].id);
+    window.location = './read.html';
+});
 
 // $('button#new-doc').on('click', function(){
 //     console.log("creating new doc");
@@ -27,6 +29,6 @@ $.get("http://localhost:8080/document/all", function(data) {
 // });
 
 $('button#new-doc').on('click', function(){
-    // pop up here
+    // no express server
     window.location = './write.html';
 });

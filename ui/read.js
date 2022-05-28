@@ -1,4 +1,10 @@
 const modal = $('#exampleModal');
+let docID = sessionStorage.getItem('currentDocumentID');
+$.get("http://localhost:8080/document/"+docID, function(data) {
+    $('input#docTitle').val(data.title); // document title
+    $('textarea#docContent').val(data.content); // document content
+});
+
 
 $(function(){
     // forces user to click close button
