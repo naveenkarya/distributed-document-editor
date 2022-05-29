@@ -1,4 +1,4 @@
-const e = require("express");
+// const e = require("express");
 
 $('textarea#tiny').tinymce({
     height: 500,
@@ -43,7 +43,7 @@ $('button.close').on('click', function(){
 
 $('button#save').on('click', function(){
     // TODO: pull document ID from database
-    saveDoc(0, $('input#docName').val(), tinymce.activeEditor.getContent());
+    saveDoc($('input#docName').val(), tinymce.activeEditor.getContent());
 });
 
 $('button#save-changes').on('click', function(){
@@ -56,11 +56,11 @@ $('button#ignore-changes').on('click', function(){
     returnToRead();
 });
 
-function saveDoc(id, name, content){
-    console.log(`Sending content for document ${id} to db`);
+function saveDoc(name, content){
+    // console.log(`Sending content for document ${id} to db`);
     console.log(`Document name: ${name}`);
     console.log(`Document content:\n${content}`);
-    let requestUrl = 'http://localhost:8080/document/'+id; // update this to whichever POST is
+    let requestUrl = 'http://localhost:8080/document/'+getItem('currentDocumentID'); // update this to whichever POST is
     if(!sessionStorage.getItem('author')){
         requestUrl = 'http://localhost:8080/document/add';
         sessionStorage.setItem("author", 'alexa');
@@ -71,6 +71,9 @@ function saveDoc(id, name, content){
         content: content,
         author: sessionStorage.getItem('author')
     };
+    if(sessionStorage.getItem('currentDocumentID')){
+        docObj.id=sessionStorage.getItem('currentDocumentID');
+    }
     $.ajax({
         method: 'POST',
         url: requestUrl,
