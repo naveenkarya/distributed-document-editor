@@ -51,4 +51,8 @@ public class WordDocument {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 }

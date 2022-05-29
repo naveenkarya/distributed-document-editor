@@ -33,13 +33,15 @@ public class DocumentController {
     }
 
     @PostMapping(DOCUMENT_UPDATE_PATH)
-    public ResponseEntity<WordDocument> updateDocument(@RequestBody String content, @PathVariable String documentId) {
+    public ResponseEntity<WordDocument> updateDocument(@RequestBody WordDocument document, @PathVariable String documentId) {
         Optional<WordDocument> doc = documentRepository.findById(documentId);
         if (doc.isPresent()) {
             WordDocument wordDocument = doc.get();
-            wordDocument.setContent(content);
+            System.out.println(document.content);
+            wordDocument.setContent(document.content);
+            wordDocument.setTitle(document.title);
             documentRepository.save(wordDocument);
-            replicationService.replicate(content, documentId);
+            replicationService.replicate(document, documentId);
             return ResponseEntity.ok(wordDocument);
         }
         return ResponseEntity.notFound().build();
