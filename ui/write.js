@@ -64,21 +64,19 @@ function saveDoc(name, content){
     console.log(`Document content:\n${content}`);
     // let requestUrl = 'http://localhost:8080/document/'+'0'; // update this to whichever POST is
     let requestUrl = 'http://localhost:8080/document/'+sessionStorage.getItem('currentDocumentID'); // update this to whichever POST is
-    // if(!sessionStorage.getItem('author')){
-    //     requestUrl = 'http://localhost:8080/document/add';
-    //     sessionStorage.setItem("author", 'alexa');
-    // }
     // TODO: write to database
     let docObj = {
         title: name,
-        content: content,
-        // author: sessionStorage.getItem('author')
-        author: 'alexa'
+        content: content
     };
     if(sessionStorage.getItem('currentDocumentID')){
-        // delete docObj.title; // uncomment once API accepts title change
-        delete docObj.author;
+        delete docObj.title; // comment out once API accepts title change
         // leaves only content
+    } else {
+        requestUrl = 'http://localhost:8080/document/add';
+        sessionStorage.setItem("author", 'alexa');
+        if(!sessionStorage.getItem('author')) sessionStorage.setItem("author", 'alexa');
+        docObj.author = sessionStorage.getItem('author');
     }
     $.ajax({
         method: 'POST',

@@ -31,5 +31,6 @@ $.get("http://localhost:8080/document/all", function(data) {
 
 $('button#new-doc').on('click', function(){
     // no express server
+    sessionStorage.removeItem('currentDocumentID');
     window.location = './write.html';
 });
