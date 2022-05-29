@@ -12,10 +12,12 @@ $('textarea#tiny').tinymce({
     toolbar: 'undo redo | blocks | bold italic backcolor | ' +
       'alignleft aligncenter alignright alignjustify | ' +
       'bullist numlist outdent indent | removeformat | help',
-    // init_instance_callback: function(editor){
-    //     // TODO: get content from database
-    //     editor.setContent("<p>Hello world</p>");  
-    // }
+    init_instance_callback: function(editor){
+        // TODO: get content from database
+        $.get("http://localhost:8080/document/"+sessionStorage.getItem('currentDocumentID'), function(data) {
+            editor.setContent(data.content);  
+        });
+    }
   });
 
 const modal1 = $('#save-ignore-modal');
@@ -37,7 +39,7 @@ $('#editModeSwitch').on('change',function(){
 });
 
 $('button.close').on('click', function(){
-    modal.modal('hide');
+    modal1.modal('hide');
     $('#editModeSwitch').prop('checked',true);
 })
 
@@ -60,24 +62,29 @@ function saveDoc(name, content){
     // console.log(`Sending content for document ${id} to db`);
     console.log(`Document name: ${name}`);
     console.log(`Document content:\n${content}`);
-    let requestUrl = 'http://localhost:8080/document/'+getItem('currentDocumentID'); // update this to whichever POST is
-    if(!sessionStorage.getItem('author')){
-        requestUrl = 'http://localhost:8080/document/add';
-        sessionStorage.setItem("author", 'alexa');
-    }
+    // let requestUrl = 'http://localhost:8080/document/'+'0'; // update this to whichever POST is
+    let requestUrl = 'http://localhost:8080/document/'+sessionStorage.getItem('currentDocumentID'); // update this to whichever POST is
+    // if(!sessionStorage.getItem('author')){
+    //     requestUrl = 'http://localhost:8080/document/add';
+    //     sessionStorage.setItem("author", 'alexa');
+    // }
     // TODO: write to database
     let docObj = {
         title: name,
         content: content,
-        author: sessionStorage.getItem('author')
+        // author: sessionStorage.getItem('author')
+        author: 'alexa'
     };
     if(sessionStorage.getItem('currentDocumentID')){
-        docObj.id=sessionStorage.getItem('currentDocumentID');
+        // delete docObj.title; // uncomment once API accepts title change
+        delete docObj.author;
+        // leaves only content
     }
     $.ajax({
         method: 'POST',
         url: requestUrl,
-        data: JSON.stringify(docObj),
+        headers: {"Content-Type": "application/json"},
+        data: docObj,
         complete: function(){ // should be success
             // window.location = './write.html';
             console.log("Complete!");
