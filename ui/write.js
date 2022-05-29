@@ -74,15 +74,15 @@ function saveDoc(name, content){
         // leaves only content
     } else {
         requestUrl = 'http://localhost:8080/document/add';
-        sessionStorage.setItem("author", 'alexa');
+        // docObj.title=name;
         if(!sessionStorage.getItem('author')) sessionStorage.setItem("author", 'alexa');
         docObj.author = sessionStorage.getItem('author');
     }
     $.ajax({
         method: 'POST',
         url: requestUrl,
-        headers: {"Content-Type": "application/json"},
-        data: docObj,
+        contentType: 'application/json',
+        data: JSON.stringify(docObj),
         complete: function(){ // should be success
             // window.location = './write.html';
             console.log("Complete!");
