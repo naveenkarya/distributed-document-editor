@@ -5,11 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Getter
@@ -17,6 +14,7 @@ import java.util.stream.Collectors;
 public class NodesInfo {
     private Map<Integer, String> nodeMap;
     private Map<Integer, Timer> timerMap = new HashMap<>();
+    private Queue<String> userQueue = new LinkedList<>();
     @Value("${self}")
     private int self;
 
