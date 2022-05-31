@@ -71,17 +71,13 @@ public class NodesConfig {
 
     public void addToQueue(String documentId, String user) {
         Queue<String> queue = docUserQueue.getOrDefault(documentId, new LinkedList<>());
+        if(queue.contains(user)) {
+            queue.remove(user);
+        }
         queue.add(user);
         this.docUserQueue.put(documentId, queue);
     }
     public String getNextUser(String documentId) {
         return docUserQueue.get(documentId).poll();
-    }
-    public String peekNextUser(String documentId) {
-        return docUserQueue.get(documentId).peek();
-    }
-
-    public void pollFromQueue(String documentId) {
-        docUserQueue.get(documentId).poll();
     }
 }

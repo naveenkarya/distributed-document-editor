@@ -68,16 +68,22 @@ public class DocumentController {
         WordDocument wordDocument = doc.get();
         if (edit == true) {
             Boolean canEdit = false;
-            String[] hostAndPort = nodesConfig.getNodeMap().get(nodesConfig.getLeader()).split(":");
-            try {
-                log.info("Updating queue in leader for documentId {}", documentId);
-                String url = UriComponentsBuilder.newInstance()
-                        .scheme("http").host(hostAndPort[0]).port(hostAndPort[1])
-                        .path(UPDATE_QUEUE_PATH).buildAndExpand(documentId, user, nodesConfig.getSelf()).toUriString();
-                canEdit = restTemplate.getForEntity(url, Boolean.class).getBody();
-            } catch (Exception e) {
-                log.info("Unable to update queue in leader");
+            if(nodesConfig.isLeader()) {
+                canEdit = updateQueue(documentId, user, nodesConfig.getSelf()).getBody();
             }
+            else {
+                String[] hostAndPort = nodesConfig.getNodeMap().get(nodesConfig.getLeader()).split(":");
+                try {
+                    log.info("Updating queue in leader for documentId {}", documentId);
+                    String url = UriComponentsBuilder.newInstance()
+                            .scheme("http").host(hostAndPort[0]).port(hostAndPort[1])
+                            .path(UPDATE_QUEUE_PATH).buildAndExpand(documentId, user, nodesConfig.getSelf()).toUriString();
+                    canEdit = restTemplate.getForEntity(url, Boolean.class).getBody();
+                } catch (Exception e) {
+                    log.info("Unable to update queue in leader");
+                }
+            }
+
             if (!canEdit) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(wordDocument);
             }
