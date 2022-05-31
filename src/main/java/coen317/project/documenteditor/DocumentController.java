@@ -2,7 +2,6 @@ package coen317.project.documenteditor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -26,7 +25,7 @@ public class DocumentController {
     @Autowired
     ReplicationService replicationService;
     @Autowired
-    NodesInfo nodesInfo;
+    NodesConfig nodesConfig;
     RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping(DOCUMENT_ADD_PATH)
@@ -58,20 +57,20 @@ public class DocumentController {
         if(!doc.isPresent()) return ResponseEntity.notFound().build();
         WordDocument wordDocument = doc.get();
         if(edit == true) {
-            nodesInfo.getNodeMap().entrySet().forEach(entry -> {
+            nodesConfig.getNodeMap().entrySet().forEach(entry -> {
                 try {
                     String[] hostAndPort = entry.getValue().split(":");
                     log.info("Adding user {} to the queue of node: {}", user, entry.getKey());
                     String url = UriComponentsBuilder.newInstance()
                             .scheme("http").host(hostAndPort[0]).port(hostAndPort[1])
-                            .path(UPDATE_QUEUE_PATH).buildAndExpand(documentId, user, nodesInfo.getSelf()).toUriString();
+                            .path(UPDATE_QUEUE_PATH).buildAndExpand(documentId, user, nodesConfig.getSelf()).toUriString();
                     restTemplate.getForEntity(url, Void.class);
                 } catch (Exception e) {
                     log.info("Unable to update queue of node {}" + entry.getKey());
                 }
             });
-            nodesInfo.addToQueue(documentId, user);
-            if(nodesInfo.getDocUserQueue().get(documentId).size() == 1) {
+            nodesConfig.addToQueue(documentId, user);
+            if(nodesConfig.getDocUserQueue().get(documentId).size() == 1) {
                 wordDocument.setLocked(true);
             }
         }

@@ -19,16 +19,16 @@ public class LeaderElectionService {
 
     RestTemplate restTemplate = new RestTemplate();
     @Autowired
-    NodesInfo nodesInfo;
+    NodesConfig nodesConfig;
     private static final String LB_LEADER_PATH = "/node/leader/{leader}";
 
     public void electNewLeader() {
         int count = 0;
-        for (Map.Entry<Integer, String> entry : nodesInfo.getNodeMap().entrySet()) {
-            if (entry.getKey() > nodesInfo.getSelf()) {
+        for (Map.Entry<Integer, String> entry : nodesConfig.getNodeMap().entrySet()) {
+            if (entry.getKey() > nodesConfig.getSelf()) {
                 String uri = UriComponentsBuilder.newInstance()
                         .scheme("http").host(entry.getValue())
-                        .path(ELECTION_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
+                        .path(ELECTION_PATH).buildAndExpand(nodesConfig.getSelf()).toUriString();
                 log.info("Sending election message to " + uri);
                 try {
                     ResponseEntity<Void> response = restTemplate.getForEntity(uri, Void.class);
@@ -41,28 +41,29 @@ public class LeaderElectionService {
             }
         }
         if (count == 0) {
-            log.info("Electing self: {} as the new leader.", nodesInfo.getSelf());
-            nodesInfo.setNewLeader(nodesInfo.getSelf());
-            for (Map.Entry<Integer, String> entry : nodesInfo.getNodeMap().entrySet()) {
+            log.info("Electing self: {} as the new leader.", nodesConfig.getSelf());
+            nodesConfig.setNewLeader(nodesConfig.getSelf());
+            nodesConfig.createPingTimers();
+            for (Map.Entry<Integer, String> entry : nodesConfig.getNodeMap().entrySet()) {
                 String url = UriComponentsBuilder.newInstance()
                         .scheme("http").host(entry.getValue())
-                        .path(ELECTED_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
+                        .path(ELECTED_PATH).buildAndExpand(nodesConfig.getSelf()).toUriString();
                 log.info("Sending elected message to " + entry.getKey());
                 try {
                     restTemplate.getForEntity(url, Void.class);
                 } catch (Exception ce) {
                     log.info("Cannot connect to node: " + entry.getKey());
                 }
-                // Update Leader in Load Balancer
-                String lbUrl = UriComponentsBuilder.newInstance()
-                        .scheme("http").host(nodesInfo.getLoadBalancer())
-                        .path(LB_LEADER_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
-                log.info("Sending elected message to Load balancer");
-                try {
-                    restTemplate.getForEntity(lbUrl, Void.class);
-                } catch (Exception ce) {
-                    log.info("Cannot connect to Load Balancer");
-                }
+            }
+            // Update Leader in Load Balancer
+            String lbUrl = UriComponentsBuilder.newInstance()
+                    .scheme("http").host(nodesConfig.getLoadBalancer())
+                    .path(LB_LEADER_PATH).buildAndExpand(nodesConfig.getSelf()).toUriString();
+            log.info("Sending elected message to Load balancer");
+            try {
+                restTemplate.getForEntity(lbUrl, Void.class);
+            } catch (Exception ce) {
+                log.info("Cannot connect to Load Balancer");
             }
         }
     }
