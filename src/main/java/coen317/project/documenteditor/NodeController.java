@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Timer;
@@ -13,6 +14,7 @@ import java.util.Timer;
 @RestController
 @Slf4j
 public class NodeController {
+    public static final String UPDATE_QUEUE_PATH = "/updateQueue/{documentId}/{user}/{fromNode}";
     @Autowired
     NodesInfo nodesInfo;
     public static final String PING_PATH = "/ping/{number}";
@@ -51,6 +53,14 @@ public class NodeController {
     public ResponseEntity<Void> removeNode(@PathVariable int node) {
         log.info("Self: {}. Request to remove node: {}", nodesInfo.getSelf(), node);
         nodesInfo.removeNode(node);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(UPDATE_QUEUE_PATH)
+    public ResponseEntity<Void> updateQueue(@PathVariable String documentId, @PathVariable String user, @PathVariable int fromNode) {
+        if(fromNode != nodesInfo.getSelf()) {
+            nodesInfo.addToQueue(documentId, user);
+        }
         return ResponseEntity.ok().build();
     }
 }

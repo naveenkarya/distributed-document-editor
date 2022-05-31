@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -14,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NodesInfo {
     private Map<Integer, String> nodeMap;
     private Map<Integer, Timer> timerMap = new HashMap<>();
-    private Queue<String> userQueue = new LinkedList<>();
+    private Map<String, Queue<String>> docUserQueue = new HashMap<>();
     @Value("${self}")
     private int self;
 
@@ -47,5 +48,11 @@ public class NodesInfo {
 
     public boolean isLeader() {
         return self == leader;
+    }
+
+    public void addToQueue(String documentId, String user) {
+        Queue<String> queue = docUserQueue.getOrDefault(documentId, new LinkedList<>());
+        queue.add(user);
+        this.docUserQueue.add(user);
     }
 }
