@@ -1,8 +1,6 @@
 # distributed-document-editor
 
-```
-mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=classpath:/application-1.properties
-```
+
 All mongodb in one file:
 ```
 docker compose -f docker-compose-mongo.yaml up -d
@@ -15,3 +13,12 @@ port=28003 express_port=30003 docker compose -f docker-compose.yaml -p "m3" up -
 port=28004 express_port=30004 docker compose -f docker-compose.yaml -p "m4" up -d
 ```
 
+
+Run the leader first
+```
+mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=classpath:/application-leader.properties
+```
+Then run the followers one by one
+```
+mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=classpath:/application-leader.properties
+```
