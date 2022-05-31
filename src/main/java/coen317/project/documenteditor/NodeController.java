@@ -60,12 +60,15 @@ public class NodeController {
     }
 
     @GetMapping(ADD_NODE)
-    public ResponseEntity<String> addNode(@PathVariable("node") int node, @PathVariable("port") int port) {
+    public ResponseEntity<Integer> addNode(@PathVariable("node") int node, @PathVariable("port") int port) {
         log.info("Self: {}. Request to add node: {}", node);
         String address = "localhost:" + port;
-        nodesInfo.addNode(node, address);
         nodeAddService.addNode(node, port);
-        String Respone = "Node added: " + node;
-        return ResponseEntity.ok(Respone);
+        nodesInfo.addNode(node, address);
+        Timer timer = new Timer();
+        RemoveFailedNode removeFailedNode = new RemoveFailedNode(node, nodesInfo);
+        nodesInfo.getTimerMap().put(node, timer);
+        timer.schedule(removeFailedNode, 2000);
+        return ResponseEntity.ok(node);
     }
 }

@@ -17,8 +17,10 @@ import java.util.stream.Collectors;
 public class NodesInfo {
     private Map<Integer, String> nodeMap;
     private Map<Integer, Timer> timerMap = new HashMap<>();
-    @Value("${self}")
     private int self;
+
+    @Value("${server.port}")
+    private int selfPort;
 
     @Value("${leader}")
     private int leader;
@@ -26,6 +28,9 @@ public class NodesInfo {
     @Value("${load-balancer}")
     private String loadBalancer;
 
+    public void setSelf(int self) {
+        this.self = self;
+    }
     @Value("#{${nodeMap}}")
     public void setNodeMap(Map<Integer, String> nodeMap) {
         this.nodeMap = new ConcurrentHashMap<>(nodeMap);
