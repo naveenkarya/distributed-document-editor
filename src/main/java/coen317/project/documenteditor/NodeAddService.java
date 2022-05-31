@@ -18,7 +18,6 @@ public class NodeAddService {
     NodesInfo nodesInfo;
 
     public void addNode(int nodeId, int port) {
-        String nodePath = "/add/" + nodeId +"/"+port;
         if (nodesInfo.isLeader()) {
             nodesInfo.getNodeMap().entrySet().forEach(entry -> {
                 try {
@@ -26,11 +25,11 @@ public class NodeAddService {
                     log.info("Replicating node Addition {} to: {}", nodeId, entry.getKey());
                     String url = UriComponentsBuilder.newInstance()
                             .scheme("http").host(hostAndPort[0]).port(hostAndPort[1])
-                            .path(nodePath).toUriString();
+                            .path(ADD_NODE).buildAndExpand(nodeId,port).toUriString();
                     restTemplate.getForEntity(url, WordDocument.class);
-                    log.info("Replicated");
+                    log.info("Replicated Nodes");
                 } catch (Exception ce) {
-                    log.info("Unable to replicate to node: " + entry.getKey() + ce.getMessage());
+                    log.info("Unable to replicate the addition: " + entry.getKey() + ce.getMessage());
                 }
             });
         }
