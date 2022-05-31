@@ -71,7 +71,7 @@ public class DocumentController {
                 }
             });
             nodesInfo.addToQueue(documentId, user);
-            if(nodesInfo.getUserQueue(documentId).size() == 1) {
+            if(nodesInfo.getDocUserQueue().get(documentId).size() == 1) {
                 wordDocument.setLocked(true);
             }
         }

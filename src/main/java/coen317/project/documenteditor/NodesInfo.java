@@ -53,6 +53,6 @@ public class NodesInfo {
     public void addToQueue(String documentId, String user) {
         Queue<String> queue = docUserQueue.getOrDefault(documentId, new LinkedList<>());
         queue.add(user);
-        this.docUserQueue.add(user);
+        this.docUserQueue.put(documentId, queue);
     }
 }
