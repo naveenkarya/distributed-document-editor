@@ -14,7 +14,7 @@ import java.util.Timer;
 @RestController
 @Slf4j
 public class NodeController {
-    public static final String UPDATE_QUEUE_PATH = "/updateQueue/{documentId}/{user}/{fromNode}";
+
     @Autowired
     NodesConfig nodesConfig;
     public static final String PING_PATH = "/ping/{number}";
@@ -73,12 +73,5 @@ public class NodeController {
             timer.schedule(removeFailedNode, 3000);
         }
         return ResponseEntity.ok(node);
-    }
-    @GetMapping(UPDATE_QUEUE_PATH)
-    public ResponseEntity<Void> updateQueue(@PathVariable String documentId, @PathVariable String user, @PathVariable int fromNode) {
-        if(fromNode != nodesConfig.getSelf()) {
-            nodesConfig.addToQueue(documentId, user);
-        }
-        return ResponseEntity.ok().build();
     }
 }

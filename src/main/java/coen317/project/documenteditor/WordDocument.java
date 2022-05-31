@@ -33,8 +33,8 @@ public class WordDocument {
     @Version
     private Long version;
     public String content;
-    @Transient
     public boolean locked = false;
+    public String lockedBy;
 
     public WordDocument() {
     }

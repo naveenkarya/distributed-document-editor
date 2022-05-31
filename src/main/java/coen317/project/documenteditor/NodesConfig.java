@@ -74,4 +74,14 @@ public class NodesConfig {
         queue.add(user);
         this.docUserQueue.put(documentId, queue);
     }
+    public String getNextUser(String documentId) {
+        return docUserQueue.get(documentId).poll();
+    }
+    public String peekNextUser(String documentId) {
+        return docUserQueue.get(documentId).peek();
+    }
+
+    public void pollFromQueue(String documentId) {
+        docUserQueue.get(documentId).poll();
+    }
 }
