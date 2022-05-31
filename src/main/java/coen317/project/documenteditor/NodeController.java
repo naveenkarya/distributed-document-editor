@@ -20,6 +20,11 @@ public class NodeController {
     public static final String ELECTED_PATH = "/elected/{newLeader}";
     public static final String REMOVE_NODE = "/remove/{node}";
 
+    public static final String ADD_NODE = "/add/{node}/{port}";
+
+    @Autowired
+    NodeAddService nodeAddService;
+
     @GetMapping(PING_PATH)
     public ResponseEntity<Void> ping(@PathVariable int number) {
         //log.info("Ping from {}", number);
@@ -52,5 +57,15 @@ public class NodeController {
         log.info("Self: {}. Request to remove node: {}", nodesInfo.getSelf(), node);
         nodesInfo.removeNode(node);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(ADD_NODE)
+    public ResponseEntity<String> addNode(@PathVariable("node") int node, @PathVariable("port") int port) {
+        log.info("Self: {}. Request to add node: {}", node);
+        String address = "localhost:" + port;
+        nodesInfo.addNode(node, address);
+        nodeAddService.addNode(node, port);
+        String Respone = "Node added: " + node;
+        return ResponseEntity.ok(Respone);
     }
 }

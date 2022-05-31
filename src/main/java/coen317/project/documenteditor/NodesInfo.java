@@ -36,6 +36,12 @@ public class NodesInfo {
         nodeMap.remove(node);
     }
 
+    public synchronized void addNode(Integer node, String address) {
+
+        nodeMap.put(node, address);
+        log.info("Add node {}. Node Map: {}", node, nodeMap);
+    }
+
     public synchronized void removeLeader() {
         log.info("Removing leader node {} from map", leader);
         nodeMap.remove(leader);
