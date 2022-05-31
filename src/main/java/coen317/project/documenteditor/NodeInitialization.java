@@ -4,16 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,7 +16,7 @@ import java.util.stream.Collectors;
 public class NodeInitialization {
 
     @Autowired
-    private NodesInfo nodesInfo;
+    private NodesConfig nodesConfig;
     @Autowired
     FollowerStatusService followerStatusService;
     private static final String LB_ADD_NODE_PATH = "/node/add/{port}";
@@ -30,28 +25,30 @@ public class NodeInitialization {
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeNode() {
-        updateExistingNodes();
-        addSelf();
+        if (nodesConfig.getSelf() == 0) {
+            updateExistingNodes();
+            addSelf();
+        }
     }
 
     private void updateExistingNodes() {
+        String[] lbHostPort = nodesConfig.getLoadBalancer().split(":");
         String url = UriComponentsBuilder.newInstance()
-                .scheme("http").host(nodesInfo.getLoadBalancer())
+                .scheme("http").host(lbHostPort[0]).port(lbHostPort[1])
                 .path("/node/map").toUriString();
-        RequestEntity<Void> request = RequestEntity.get(url)
-                .accept(MediaType.APPLICATION_JSON).build();
-        ParameterizedTypeReference<HashMap<Integer, Integer>> responseType = new ParameterizedTypeReference<HashMap<Integer, Integer>>() {
-        };
-        Map<Integer, Integer> nodeMap = restTemplate.exchange(request, responseType).getBody();
-        nodesInfo.setNodeMap(nodeMap.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> "localhost:" + e.getValue())));
+        NodeInfoResponse nodeInfoResponse = restTemplate.getForEntity(url, NodeInfoResponse.class).getBody();
+        nodesConfig.setLeader(nodeInfoResponse.getLeader());
+        nodesConfig.setNodeMap(nodeInfoResponse.getNodeMap().entrySet().stream()
+                .collect(Collectors.toConcurrentMap(e -> e.getKey(), e -> "localhost:" + e.getValue())));
     }
 
     private void addSelf() {
+        String[] lbHostPort = nodesConfig.getLoadBalancer().split(":");
         String url = UriComponentsBuilder.newInstance()
-                .scheme("http").host(nodesInfo.getLoadBalancer())
-                .path(LB_ADD_NODE_PATH).buildAndExpand(nodesInfo.getSelfPort()).toUriString();
+                .scheme("http").host(lbHostPort[0]).port(lbHostPort[1])
+                .path(LB_ADD_NODE_PATH).buildAndExpand(nodesConfig.getSelfPort()).toUriString();
         ResponseEntity<Integer> selfNode = restTemplate.getForEntity(url, Integer.class);
-        nodesInfo.setSelf(selfNode.getBody());
+        nodesConfig.setSelf(selfNode.getBody());
     }
 
 }

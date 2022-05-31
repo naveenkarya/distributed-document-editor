@@ -1,6 +1,7 @@
 package coen317.project.documenteditor;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -9,20 +10,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Getter
 @Component
-public class NodesInfo {
-    private Map<Integer, String> nodeMap;
-    private Map<Integer, Timer> timerMap = new HashMap<>();
+public class NodesConfig {
+    @Setter
+    private Map<Integer, String> nodeMap = new ConcurrentHashMap<>();
+    private Map<Integer, Timer> timerMap = new ConcurrentHashMap<>();
+    @Value("${self:0}")
     private int self;
 
     @Value("${server.port}")
     private int selfPort;
 
-    @Value("${leader}")
+    @Value("${leader:0}")
+    @Setter
     private int leader;
 
     @Value("${load-balancer}")
@@ -30,10 +33,6 @@ public class NodesInfo {
 
     public void setSelf(int self) {
         this.self = self;
-    }
-    @Value("#{${nodeMap}}")
-    public void setNodeMap(Map<Integer, String> nodeMap) {
-        this.nodeMap = new ConcurrentHashMap<>(nodeMap);
     }
 
     public synchronized void removeNode(Integer node) {
@@ -57,8 +56,16 @@ public class NodesInfo {
         log.info("Assigning leader {}", leader);
         this.leader = leader;
     }
+    public void createPingTimers() {
+        for(Integer follower : nodeMap.keySet()) {
+            Timer timer = new Timer();
+            RemoveFailedNode removeFailedNode = new RemoveFailedNode(follower, this);
+            timerMap.put(follower, timer);
+            timer.schedule(removeFailedNode, 2000);
+        }
+    }
 
     public boolean isLeader() {
-        return self == leader;
+        return self != 0 && self == leader;
     }
 }
