@@ -16,23 +16,23 @@ public class PingService {
     RestTemplate restTemplate = new RestTemplate(getClientHttpRequestFactory());
 
     @Autowired
-    NodesInfo nodesInfo;
+    NodesConfig nodesConfig;
 
     @Autowired
     LeaderElectionService leaderElectionService;
 
     @Scheduled(fixedRate = 1000)
     public void sendPingTo() {
-        log.info("Node {} is connected to {}", nodesInfo.getSelf(), nodesInfo.getNodeMap().keySet());
-        if (!nodesInfo.isLeader()) {
+        if(nodesConfig.getSelf() == 0) return;
+        log.info("Node {} is connected to {}, and leader is {}", nodesConfig.getSelf(), nodesConfig.getNodeMap().keySet(), nodesConfig.getLeader());
+        if (!nodesConfig.isLeader()) {
             try {
                 String url = UriComponentsBuilder.newInstance()
-                        .scheme("http").host(nodesInfo.getNodeMap().get(nodesInfo.getLeader()))
-                        .path(PING_PATH).buildAndExpand(nodesInfo.getSelf()).toUriString();
-                log.info("Leader node: {}", nodesInfo.getLeader());
+                        .scheme("http").host(nodesConfig.getNodeMap().get(nodesConfig.getLeader()))
+                        .path(PING_PATH).buildAndExpand(nodesConfig.getSelf()).toUriString();
                 restTemplate.getForObject(url, Void.class);
             } catch (Exception ce) {
-                log.info("Cannot connect to leader node: {}", nodesInfo.getLeader());
+                log.info("Cannot connect to leader node: {}", nodesConfig.getLeader());
                 //nodesInfo.removeLeader();
                 leaderElectionService.electNewLeader();
             }

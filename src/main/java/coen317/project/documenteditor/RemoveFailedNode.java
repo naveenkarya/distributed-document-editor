@@ -13,20 +13,20 @@ import static coen317.project.documenteditor.NodeController.REMOVE_NODE;
 public class RemoveFailedNode extends TimerTask {
     public static final String LB_REMOVE_NODE_PATH = "/node/remove/{nodeid}";
     int node;
-    NodesInfo nodesInfo;
+    NodesConfig nodesConfig;
 
-    public RemoveFailedNode(int node, NodesInfo nodesInfo) {
+    public RemoveFailedNode(int node, NodesConfig nodesConfig) {
         super();
         this.node = node;
-        this.nodesInfo = nodesInfo;
+        this.nodesConfig = nodesConfig;
     }
 
     @Override
     public void run() {
         log.info("Failure detected for follower node {}", node);
         RestTemplate restTemplate = new RestTemplate();
-        nodesInfo.removeNode(node);
-        for (Map.Entry<Integer, String> entry : nodesInfo.getNodeMap().entrySet()) {
+        nodesConfig.removeNode(node);
+        for (Map.Entry<Integer, String> entry : nodesConfig.getNodeMap().entrySet()) {
             String uri = UriComponentsBuilder.newInstance()
                     .scheme("http").host(entry.getValue())
                     .path(REMOVE_NODE).buildAndExpand(node).toUriString();
@@ -38,9 +38,9 @@ public class RemoveFailedNode extends TimerTask {
 
             // Remove failed node in Load Balancer
             String lbUrl = UriComponentsBuilder.newInstance()
-                    .scheme("http").host(nodesInfo.getLoadBalancer())
+                    .scheme("http").host(nodesConfig.getLoadBalancer())
                     .path(LB_REMOVE_NODE_PATH).buildAndExpand(node).toUriString();
-            log.info("Sending failed node message to Load balancer: {}", nodesInfo.getLoadBalancer());
+            log.info("Sending failed node message to Load balancer: {}", nodesConfig.getLoadBalancer());
             try {
                 restTemplate.getForEntity(lbUrl, Void.class);
             } catch (Exception ce) {
