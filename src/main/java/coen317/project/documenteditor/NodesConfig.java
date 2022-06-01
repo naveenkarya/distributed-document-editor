@@ -9,12 +9,13 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Slf4j
 @Getter
 @Component
 public class NodesConfig {
-    private Map<String, Queue<String>> docUserQueue = new HashMap<>();
+    private Map<String, Deque<String>> docUserQueue = new HashMap<>();
     @Setter
     private Map<Integer, String> nodeMap = new ConcurrentHashMap<>();
     private Map<Integer, Timer> timerMap = new ConcurrentHashMap<>();
@@ -70,11 +71,14 @@ public class NodesConfig {
     }
 
     public void addToQueue(String documentId, String user) {
-        Queue<String> queue = docUserQueue.getOrDefault(documentId, new LinkedList<>());
+        Deque<String> queue = docUserQueue.getOrDefault(documentId, new ConcurrentLinkedDeque<>());
         if(queue.contains(user)) {
             queue.remove(user);
+            queue.addFirst(user);
         }
-        queue.add(user);
+        else {
+            queue.add(user);
+        }
         this.docUserQueue.put(documentId, queue);
     }
     public String getNextUser(String documentId) {

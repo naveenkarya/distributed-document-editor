@@ -41,8 +41,8 @@ public class PingService {
 
     private SimpleClientHttpRequestFactory getClientHttpRequestFactory() {
         SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
-        clientHttpRequestFactory.setConnectTimeout(200);
-        clientHttpRequestFactory.setReadTimeout(200);
+        clientHttpRequestFactory.setConnectTimeout(1000);
+        clientHttpRequestFactory.setReadTimeout(1000);
         return clientHttpRequestFactory;
     }
 }

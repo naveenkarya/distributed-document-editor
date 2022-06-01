@@ -42,7 +42,7 @@ public class DocumentController {
         Optional<WordDocument> doc = documentRepository.findById(documentId);
         if (doc.isPresent()) {
             WordDocument wordDocument = doc.get();
-            if (user != null && user.equals(wordDocument.getLockedBy())) {
+            if (user.equals(wordDocument.getLockedBy())) {
                 wordDocument.setContent(document.content);
                 wordDocument.setTitle(document.title);
                 if (nodesConfig.getDocUserQueue().get(documentId).isEmpty()) {
@@ -50,6 +50,7 @@ public class DocumentController {
                     wordDocument.setLockedBy(null);
                 } else {
                     wordDocument.setLockedBy(nodesConfig.getNextUser(documentId));
+                    log.info("Queue updated to : {}", nodesConfig.getDocUserQueue().get(documentId));
                 }
                 documentRepository.save(wordDocument);
                 replicationService.replicate(document, documentId);
@@ -62,14 +63,17 @@ public class DocumentController {
 
 
     @GetMapping(DOCUMENT_UPDATE_PATH)
-    public ResponseEntity<WordDocument> getDocument(@PathVariable String documentId, @RequestParam boolean edit, @RequestParam String user) {
+    public ResponseEntity<WordDocument> getDocument(@PathVariable String documentId, @RequestParam(required = false, defaultValue = "false") boolean edit, @RequestParam Optional<String> user) {
         Optional<WordDocument> doc = documentRepository.findById(documentId);
         if (!doc.isPresent()) return ResponseEntity.notFound().build();
         WordDocument wordDocument = doc.get();
         if (edit == true) {
+            if(!user.isPresent()) {
+                return ResponseEntity.badRequest().build();
+            }
             Boolean canEdit = false;
             if(nodesConfig.isLeader()) {
-                canEdit = updateQueue(documentId, user, nodesConfig.getSelf()).getBody();
+                canEdit = updateQueue(documentId, user.get(), nodesConfig.getSelf()).getBody();
             }
             else {
                 String[] hostAndPort = nodesConfig.getNodeMap().get(nodesConfig.getLeader()).split(":");
@@ -77,7 +81,7 @@ public class DocumentController {
                     log.info("Updating queue in leader for documentId {}", documentId);
                     String url = UriComponentsBuilder.newInstance()
                             .scheme("http").host(hostAndPort[0]).port(hostAndPort[1])
-                            .path(UPDATE_QUEUE_PATH).buildAndExpand(documentId, user, nodesConfig.getSelf()).toUriString();
+                            .path(UPDATE_QUEUE_PATH).buildAndExpand(documentId, user.get(), nodesConfig.getSelf()).toUriString();
                     canEdit = restTemplate.getForEntity(url, Boolean.class).getBody();
                 } catch (Exception e) {
                     log.info("Unable to update queue in leader");
@@ -100,9 +104,12 @@ public class DocumentController {
     @GetMapping(UPDATE_QUEUE_PATH)
     public ResponseEntity<Boolean> updateQueue(@PathVariable String documentId, @PathVariable String user, @PathVariable int fromNode) {
         boolean canEdit = false;
+        log.info("IsLeader: {}", nodesConfig.isLeader());
+
         if (nodesConfig.isLeader()) {
             synchronized (this) {
                 WordDocument wordDocument = documentRepository.findById(documentId).get();
+                log.info("islocked: {}, locked by: {}, user requesting: {}", wordDocument.isLocked(), wordDocument.getLockedBy(), user);
                 if (wordDocument.isLocked()) {
                     if(wordDocument.getLockedBy().equals(user)) {
                         canEdit = true;
@@ -114,10 +121,12 @@ public class DocumentController {
                     wordDocument.setLockedBy(user);
                     wordDocument.setLocked(true);
                     documentRepository.save(wordDocument);
+                    replicationService.replicate(wordDocument, documentId);
                     canEdit = true;
                 }
             }
         }
+        log.info("current queue: {}", nodesConfig.getDocUserQueue().get(documentId));
         return ResponseEntity.ok().body(canEdit);
     }
 
