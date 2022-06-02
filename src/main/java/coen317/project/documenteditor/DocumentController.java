@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class DocumentController {
 
-    public static final String DOCUMENT_ADD_PATH = "/document/add";
+    public static final String DOCUMENT_ADD_PATH = "/document/add/{user}";
     public static final String DOCUMENT_UPDATE_PATH = "/document/{documentId}";
 
     public static final String DOCUMENT_GET_ALL_PATH = "/document/all";
@@ -32,7 +32,9 @@ public class DocumentController {
     RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping(DOCUMENT_ADD_PATH)
-    public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document) {
+    public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document, @PathVariable String user) {
+        document.setLocked(true);
+        document.setLockedBy(user);
         WordDocument savedDocument = documentRepository.save(document);
         replicationService.replicate(savedDocument);
         return ResponseEntity.ok(document);
