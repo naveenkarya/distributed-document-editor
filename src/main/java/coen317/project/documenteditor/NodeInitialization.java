@@ -40,28 +40,24 @@ public class NodeInitialization {
             addSelf();
         }
 
-        List<WordDocument> documentList = documentRepository.findAll();
-        if (documentList.isEmpty()) {
-            if (!nodesConfig.isLeader()) {
-                try {
-                    String[] hostAndPort = nodesConfig.getNodeMap().get(nodesConfig.getLeader()).split(":");
-                    String url = UriComponentsBuilder.newInstance()
-                            .scheme("http").host(hostAndPort[0]).port(hostAndPort[1])
-                            .path(DOCUMENT_GET_ALL_PATH).toUriString();
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    objectMapper.registerModule(new JavaTimeModule());
-                    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-                    List<WordDocument> documentList1 = objectMapper.convertValue(restTemplate.getForObject(url, List.class), new TypeReference<List<WordDocument>>() {
-                    });
-                    for (int i = 0; i < documentList1.size(); i++) {
-                        ;
-                        WordDocument replicateDocument = documentList1.get(i);
-                        documentRepository.save(replicateDocument);
-                    }
-                    log.info("Replicating all documents ");
-                } catch (Exception ce) {
-                    log.info("Unable to copy: " + ce.getMessage());
+        if (!nodesConfig.isLeader()) {
+            try {
+                String[] hostAndPort = nodesConfig.getNodeMap().get(nodesConfig.getLeader()).split(":");
+                String url = UriComponentsBuilder.newInstance()
+                        .scheme("http").host(hostAndPort[0]).port(hostAndPort[1])
+                        .path(DOCUMENT_GET_ALL_PATH).toUriString();
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.registerModule(new JavaTimeModule());
+                objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                List<WordDocument> documentList1 = objectMapper.convertValue(restTemplate.getForObject(url, List.class), new TypeReference<List<WordDocument>>() {
+                });
+                for (int i = 0; i < documentList1.size(); i++) {
+                    WordDocument replicateDocument = documentList1.get(i);
+                    documentRepository.save(replicateDocument);
                 }
+                log.info("Replicating all documents ");
+            } catch (Exception ce) {
+                log.info("Unable to copy: " + ce.getMessage());
             }
         }
     }
