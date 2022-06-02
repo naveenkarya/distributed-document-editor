@@ -6,15 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Slf4j
 @Getter
 @Component
 public class NodesConfig {
+    private Map<String, Deque<String>> docUserQueue = new ConcurrentHashMap<>();
     @Setter
     private Map<Integer, String> nodeMap = new ConcurrentHashMap<>();
     private Map<Integer, Timer> timerMap = new ConcurrentHashMap<>();
@@ -67,5 +67,24 @@ public class NodesConfig {
 
     public boolean isLeader() {
         return self != 0 && self == leader;
+    }
+
+    public void addToQueue(String documentId, String user) {
+        Deque<String> queue = docUserQueue.getOrDefault(documentId, new ConcurrentLinkedDeque<>());
+        if(queue.contains(user)) {
+            queue.remove(user);
+            queue.addFirst(user);
+        }
+        else {
+            queue.add(user);
+        }
+        this.docUserQueue.put(documentId, queue);
+    }
+    public String getNextUser(String documentId) {
+        return docUserQueue.get(documentId).poll();
+    }
+
+    public boolean isQueueEmpty(String documentId) {
+        return docUserQueue.get(documentId) == null || docUserQueue.get(documentId).isEmpty();
     }
 }

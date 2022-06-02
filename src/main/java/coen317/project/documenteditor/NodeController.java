@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Timer;
@@ -13,6 +14,7 @@ import java.util.Timer;
 @RestController
 @Slf4j
 public class NodeController {
+
     @Autowired
     NodesConfig nodesConfig;
     public static final String PING_PATH = "/ping/{number}";
@@ -58,7 +60,6 @@ public class NodeController {
         nodesConfig.removeNode(node);
         return ResponseEntity.ok().build();
     }
-
     @GetMapping(ADD_NODE)
     public ResponseEntity<Integer> addNode(@PathVariable("node") int node, @PathVariable("port") int port) {
         log.info("Request to add node: {} with port: {}", node, port);

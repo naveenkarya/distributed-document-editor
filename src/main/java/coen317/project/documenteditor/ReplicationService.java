@@ -36,7 +36,7 @@ public class ReplicationService {
         }
     }
     @Async
-    public void replicate(WordDocument document, String documentId) {
+    public void replicate(WordDocument document, String documentId, String user) {
         if (nodesConfig.isLeader()) {
             nodesConfig.getNodeMap().entrySet().forEach(entry -> {
                 try {
@@ -44,11 +44,11 @@ public class ReplicationService {
                     log.info("Replicating update of {} to: {}", documentId, entry.getKey());
                     String url = UriComponentsBuilder.newInstance()
                             .scheme("http").host(hostAndPort[0]).port(hostAndPort[1])
-                            .path(DOCUMENT_UPDATE_PATH).buildAndExpand(documentId).toUriString();
+                            .path(DOCUMENT_UPDATE_PATH).queryParam("user", user).buildAndExpand(documentId).toUriString();
                     restTemplate.postForEntity(url, document, WordDocument.class);
                     log.info("Replicated");
                 } catch (Exception e) {
-                    log.info("Unable to replicate to node: " + entry.getKey() + e.getMessage());
+                    log.error("Unable to replicate to node: " + entry.getKey(), e);
                 }
             });
         }
