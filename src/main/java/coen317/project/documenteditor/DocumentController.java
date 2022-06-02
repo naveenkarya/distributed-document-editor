@@ -33,7 +33,6 @@ public class DocumentController {
 
     @PostMapping(DOCUMENT_ADD_PATH)
     public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document) {
-        document.setVersion(null);
         WordDocument savedDocument = documentRepository.save(document);
         replicationService.replicate(savedDocument);
         return ResponseEntity.ok(document);
