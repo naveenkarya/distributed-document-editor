@@ -45,7 +45,6 @@ public class LeaderElectionService {
         if (count == 0) {
             log.info("Electing self: {} as the new leader.", nodesConfig.getSelf());
             nodesConfig.setNewLeader(nodesConfig.getSelf());
-            nodesConfig.createPingTimers();
             // Inform other nodes of the new leader with elected message
             for (Map.Entry<Integer, String> entry : nodesConfig.getNodeMap().entrySet()) {
                 String url = UriComponentsBuilder.newInstance()
@@ -58,6 +57,8 @@ public class LeaderElectionService {
                     log.info("Cannot connect to node: " + entry.getKey());
                 }
             }
+            // Create timers for expected pings from followers
+            nodesConfig.createPingTimers();
             // Update new leader in Load Balancer
             String lbUrl = UriComponentsBuilder.newInstance()
                     .scheme("http").host(nodesConfig.getLoadBalancer())

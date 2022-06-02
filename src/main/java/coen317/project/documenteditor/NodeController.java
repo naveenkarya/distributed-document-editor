@@ -29,7 +29,7 @@ public class NodeController {
 
     /**
      * Receives ping from followers
-     * @param number ID of the node that sent this ping
+     * @param number ID of the follower node that sent this ping
      * @return
      */
     @GetMapping(PING_PATH)
