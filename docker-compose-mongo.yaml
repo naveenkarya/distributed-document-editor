@@ -1,0 +1,55 @@
+version: "3.8"
+services:
+  mongodb1:
+    image: mongo
+    container_name: mongodb1
+    ports:
+      - 28001:27017
+    volumes:
+      - data1:/mongo-data-1
+  mongodb2:
+    image: mongo
+    container_name: mongodb2
+    ports:
+      - 28002:27017
+    volumes:
+      - data2:/mongo-data-1
+  mongodb3:
+    image: mongo
+    container_name: mongodb3
+    ports:
+      - 28003:27017
+    volumes:
+      - data3:/mongo-data-3
+  mongodb4:
+    image: mongo
+    container_name: mongodb4
+    ports:
+      - 28004:27017
+    volumes:
+      - data4:/mongo-data-4
+  mongo-express1:
+    image: mongo-express
+    container_name: mongo-express1
+    restart: always
+    ports:
+      - 29001:8081
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb1
+  mongo-express2:
+    image: mongo-express
+    container_name: mongo-express2
+    restart: always
+    ports:
+      - 29002:8081
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb2
+volumes:
+  data1: {}
+  data2: {}
+  data3: {}
+  data4: {}
+
+networks:
+  default:
+    name: mongodb_network

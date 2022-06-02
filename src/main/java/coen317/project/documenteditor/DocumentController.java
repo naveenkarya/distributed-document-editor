@@ -1,6 +1,5 @@
 package coen317.project.documenteditor;
 
-import jdk.swing.interop.SwingInterOpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,7 +21,6 @@ public class DocumentController {
     public static final String DOCUMENT_UPDATE_PATH = "/document/{documentId}";
 
     public static final String DOCUMENT_GET_ALL_PATH = "/document/all";
-
     public static final String UPDATE_QUEUE_PATH = "/updateQueue/{documentId}/{user}/{fromNode}";
     private Map<String, Object> locks = new ConcurrentHashMap<>();
     @Autowired
@@ -36,7 +33,7 @@ public class DocumentController {
 
     @PostMapping(DOCUMENT_ADD_PATH)
     public ResponseEntity<WordDocument> addDocument(@RequestBody WordDocument document) {
-//        document.setVersion(null);
+        document.setVersion(null);
         WordDocument savedDocument = documentRepository.save(document);
         replicationService.replicate(savedDocument);
         return ResponseEntity.ok(document);
