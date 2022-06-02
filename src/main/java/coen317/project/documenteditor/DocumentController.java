@@ -9,7 +9,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @Slf4j
@@ -20,6 +22,7 @@ public class DocumentController {
 
     public static final String DOCUMENT_GET_ALL_PATH = "/document/all";
     public static final String UPDATE_QUEUE_PATH = "/updateQueue/{documentId}/{user}/{fromNode}";
+    private Map<String, Object> locks = new ConcurrentHashMap<>();
     @Autowired
     DocumentRepository documentRepository;
     @Autowired
@@ -107,7 +110,7 @@ public class DocumentController {
         log.info("IsLeader: {}", nodesConfig.isLeader());
 
         if (nodesConfig.isLeader()) {
-            synchronized (this) {
+            synchronized (locks.computeIfAbsent(documentId, doc -> new Object())) {
                 WordDocument wordDocument = documentRepository.findById(documentId).get();
                 log.info("islocked: {}, locked by: {}, user requesting: {}", wordDocument.isLocked(), wordDocument.getLockedBy(), user);
                 if (wordDocument.isLocked()) {

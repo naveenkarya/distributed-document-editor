@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 @Getter
 @Component
 public class NodesConfig {
-    private Map<String, Deque<String>> docUserQueue = new HashMap<>();
+    private Map<String, Deque<String>> docUserQueue = new ConcurrentHashMap<>();
     @Setter
     private Map<Integer, String> nodeMap = new ConcurrentHashMap<>();
     private Map<Integer, Timer> timerMap = new ConcurrentHashMap<>();
