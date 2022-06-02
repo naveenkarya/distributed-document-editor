@@ -48,11 +48,13 @@ public class DocumentController {
             wordDocument.setContent(document.content);
             wordDocument.setTitle(document.title);
             if(nodesConfig.isLeader()) {
+                // Allow update only if the user holds the lock
                 if (user.equals(wordDocument.getLockedBy())) {
                     documentRepository.save(wordDocument);
                     replicationService.replicate(document, documentId, user);
                     return ResponseEntity.ok(wordDocument);
                 }
+                // else return 409 status
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(wordDocument);
             }
             else {
@@ -76,9 +78,11 @@ public class DocumentController {
                 return ResponseEntity.badRequest().build();
             }
             Boolean canEdit = false;
+            // If request received on a leader, call the method directly to check if edit is allowed
             if(nodesConfig.isLeader()) {
                 canEdit = updateQueue(documentId, user.get(), nodesConfig.getSelf()).getBody();
             }
+            // If request received on a follower, call the leader to check if edit is allowed
             else {
                 String[] hostAndPort = nodesConfig.getNodeMap().get(nodesConfig.getLeader()).split(":");
                 try {
@@ -91,7 +95,6 @@ public class DocumentController {
                     log.info("Unable to update queue in leader");
                 }
             }
-
             if (!canEdit) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(wordDocument);
             }
@@ -105,22 +108,32 @@ public class DocumentController {
         return ResponseEntity.ok(documentList);
     }
 
+    /**
+     * This method either gives the requesting user edit access, or adds this user to a queue.
+     * This method is only relevant for the leader, because the leader maintains the queue
+     * @param documentId documentId for which the queue needs to be updated.
+     * @param user user requesting edit access
+     * @param fromNode requesting node ID
+     * @return boolean indicating whether edit is allowed or denied
+     */
     @GetMapping(UPDATE_QUEUE_PATH)
     public ResponseEntity<Boolean> updateQueue(@PathVariable String documentId, @PathVariable String user, @PathVariable int fromNode) {
         boolean canEdit = false;
-        log.info("IsLeader: {}", nodesConfig.isLeader());
         if (nodesConfig.isLeader()) {
             synchronized (locks.computeIfAbsent(documentId, doc -> new Object())) {
                 WordDocument wordDocument = documentRepository.findById(documentId).get();
                 log.info("islocked: {}, locked by: {}, user requesting: {}", wordDocument.isLocked(), wordDocument.getLockedBy(), user);
                 if (wordDocument.isLocked()) {
+                    // If document is locked by the requesting user, allow edit
                     if(wordDocument.getLockedBy().equals(user)) {
                         canEdit = true;
                     }
+                    // Else add this user to the queue
                     else {
                         nodesConfig.addToQueue(documentId, user);
                     }
                 } else {
+                    // If currently this document is not locked, give the lock to the requesting user
                     wordDocument.setLockedBy(user);
                     wordDocument.setLocked(true);
                     documentRepository.save(wordDocument);
@@ -133,17 +146,24 @@ public class DocumentController {
         return ResponseEntity.ok().body(canEdit);
     }
 
+    /**
+     * Releases lock associated with a documentId
+     * @param documentId
+     * @return the latest document
+     */
     @PostMapping("/document/releaseLock/{documentId}")
     public ResponseEntity<WordDocument> releaseLock(@PathVariable String documentId) {
         Optional<WordDocument> doc = documentRepository.findById(documentId);
         if (doc.isPresent()) {
             synchronized (locks.computeIfAbsent(documentId, d -> new Object())) {
                 WordDocument wordDocument = doc.get();
+                // If queue is empty, set the locked field back to false
                 if(nodesConfig.isQueueEmpty(documentId)) {
                     wordDocument.setLocked(false);
                     wordDocument.setLockedBy(null);
                 }
                 else {
+                    // If queue is not empty, next user from the queue gets the lock
                     wordDocument.setLockedBy(nodesConfig.getNextUser(documentId));
                     log.info("Queue updated to : {}", nodesConfig.getDocUserQueue().get(documentId));
                 }
