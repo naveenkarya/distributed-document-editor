@@ -130,4 +130,24 @@ public class DocumentController {
         return ResponseEntity.ok().body(canEdit);
     }
 
+    @PostMapping("/document/releaseLock/{documentId}")
+    public ResponseEntity<WordDocument> updateDocument(@PathVariable String documentId) {
+        Optional<WordDocument> doc = documentRepository.findById(documentId);
+        if (doc.isPresent()) {
+            WordDocument wordDocument = doc.get();
+            if(nodesConfig.getDocUserQueue().get(documentId).isEmpty()) {
+                wordDocument.setLocked(false);
+                wordDocument.setLockedBy(null);
+            }
+            else {
+                wordDocument.setLockedBy(nodesConfig.getNextUser(documentId));
+                log.info("Queue updated to : {}", nodesConfig.getDocUserQueue().get(documentId));
+            }
+            documentRepository.save(wordDocument);
+            replicationService.replicate(wordDocument, documentId);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
 }
