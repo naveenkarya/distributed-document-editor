@@ -12,6 +12,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @Document
@@ -27,7 +29,8 @@ public class WordDocument {
     public String title;
 
     @CreatedDate
-    private Instant createdDate = Instant.now();
+    private LocalDate createdDate = LocalDate.now();
+
 
 
     @Version

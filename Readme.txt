@@ -39,8 +39,8 @@ You will see logs similar to below (note that the port is 8081)::
 
 After the leader is up, we can run the follower nodes one by one using below commands
 
-mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=classpath:/application-1.properties
 mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=classpath:/application-2.properties
 mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=classpath:/application-3.properties
+mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=classpath:/application-4.properties
 
 To access the application, go to Load balancer URL, i.e., http://localhost:8080
