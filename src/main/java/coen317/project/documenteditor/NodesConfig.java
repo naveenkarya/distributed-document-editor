@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -83,5 +82,9 @@ public class NodesConfig {
     }
     public String getNextUser(String documentId) {
         return docUserQueue.get(documentId).poll();
+    }
+
+    public boolean isQueueEmpty(String documentId) {
+        return docUserQueue.get(documentId) == null || docUserQueue.get(documentId).isEmpty();
     }
 }

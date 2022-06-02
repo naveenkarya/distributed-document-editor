@@ -45,21 +45,22 @@ public class DocumentController {
         Optional<WordDocument> doc = documentRepository.findById(documentId);
         if (doc.isPresent()) {
             WordDocument wordDocument = doc.get();
-            if (user.equals(wordDocument.getLockedBy())) {
-                wordDocument.setContent(document.content);
-                wordDocument.setTitle(document.title);
-                if (nodesConfig.getDocUserQueue().get(documentId).isEmpty()) {
-                    wordDocument.setLocked(false);
-                    wordDocument.setLockedBy(null);
-                } else {
-                    wordDocument.setLockedBy(nodesConfig.getNextUser(documentId));
-                    log.info("Queue updated to : {}", nodesConfig.getDocUserQueue().get(documentId));
+            wordDocument.setContent(document.content);
+            wordDocument.setTitle(document.title);
+            if(nodesConfig.isLeader()) {
+                if (user.equals(wordDocument.getLockedBy())) {
+                    documentRepository.save(wordDocument);
+                    replicationService.replicate(document, documentId, user);
+                    return ResponseEntity.ok(wordDocument);
                 }
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(wordDocument);
+            }
+            else {
+                wordDocument.setLockedBy(document.getLockedBy());
+                wordDocument.setLocked(document.isLocked());
                 documentRepository.save(wordDocument);
-                replicationService.replicate(document, documentId);
                 return ResponseEntity.ok(wordDocument);
             }
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(wordDocument);
         }
         return ResponseEntity.notFound().build();
     }
@@ -123,7 +124,7 @@ public class DocumentController {
                     wordDocument.setLockedBy(user);
                     wordDocument.setLocked(true);
                     documentRepository.save(wordDocument);
-                    replicationService.replicate(wordDocument, documentId);
+                    replicationService.replicate(wordDocument, documentId, user);
                     canEdit = true;
                 }
             }
@@ -133,12 +134,12 @@ public class DocumentController {
     }
 
     @PostMapping("/document/releaseLock/{documentId}")
-    public ResponseEntity<WordDocument> updateDocument(@PathVariable String documentId) {
+    public ResponseEntity<WordDocument> releaseLock(@PathVariable String documentId) {
         Optional<WordDocument> doc = documentRepository.findById(documentId);
         if (doc.isPresent()) {
             synchronized (locks.computeIfAbsent(documentId, d -> new Object())) {
                 WordDocument wordDocument = doc.get();
-                if(nodesConfig.getDocUserQueue().get(documentId).isEmpty()) {
+                if(nodesConfig.isQueueEmpty(documentId)) {
                     wordDocument.setLocked(false);
                     wordDocument.setLockedBy(null);
                 }
@@ -147,7 +148,7 @@ public class DocumentController {
                     log.info("Queue updated to : {}", nodesConfig.getDocUserQueue().get(documentId));
                 }
                 documentRepository.save(wordDocument);
-                replicationService.replicate(wordDocument, documentId);
+                replicationService.replicate(wordDocument, documentId, "NA");
                 return ResponseEntity.ok().build();
             }
         }
