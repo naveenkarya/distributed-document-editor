@@ -13,6 +13,7 @@ $('textarea#docContent').tinymce({
             $.get("http://localhost:8080/document/"+sessionStorage.getItem('currentDocumentID'), function(data) { 
                 $('input#docTitle').val(data.title); // set document title
                 editor.setContent(data.content);  // set document content
+                modal.find('#exampleModalLabel').html(`Checking queue to edit '${data.title}'`)
             });
         }
     }
@@ -21,11 +22,22 @@ $('textarea#docContent').tinymce({
 $(function(){
     // forces user to click close button on modal
     modal.modal({backdrop: 'static', keyboard: false});
+    // spinner css after page loads
+    $("#cv-spinner").css({
+		"height": "100%",
+		"display": "flex",
+		"justify-content": "center",
+		"align-items": "center"
+	});
+    // hide/uncheck certain elements
+    $('#modal-error-message').hide();
+    $('#editModeSwitch').prop('checked',false);
 });
 
 $('#editModeSwitch').on('change',function(){
     if(this.checked==true){
         modal.modal('show');
+        checkEditAccess();
     }
 });
 
@@ -34,14 +46,28 @@ $('button.btn-close').on('click', function(){
     $('#editModeSwitch').prop('checked',false);
 })
 
+function checkEditAccess(){
+    $.ajax({
+        method: 'GET',
+        url: "http://localhost:8080/document/"+sessionStorage.getItem('currentDocumentID')+"?user="+sessionStorage.getItem('author')+"?edit=true",
+        beforeSend: function(){
+            if($('#modal-error-message').is(":visible")) $('#modal-error-message').hide();
+            $('#spinner').show();
+        },
+        complete: function(){
+            $('#spinner').hide();
+        },
+        success: function(){
+            window.location = './write.html'; // redirect to write page
+        },
+        error: function(){
+            // 409 if locked
+            $('#modal-error-message').show();
+        },
+    });
+}
+
 $('button#edit-request').on('click', function(){
-    const user = $('input#user-id').val();
-    if(user){
-        console.log(`Checking with leader for user ${user}...`);
-        // TODO: check with leader
-        window.location = './write.html'; // redirect to write page if successful
-        // give error message if leader doesn't allow write
-    } else {
-        console.log('No email provided')
-    }
+    // "Try again"
+    checkEditAccess();
 })

@@ -9,6 +9,21 @@
         <script src="./public/jquery/jquery.min.js"></script>
         <script src="./public/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
         <script src="./public/tinymce-jquery/tinymce-jquery.min.js"></script>
+        <style>
+          #spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px #ddd solid;
+            border-top: 4px #dc3545 solid;
+            border-radius: 50%;
+            animation: sp-anime 0.8s infinite linear;
+          }
+          @keyframes sp-anime {
+            100% { 
+              transform: rotate(360deg); 
+            }
+          }
+        </style>
     </head>
     <body>
         <nav class="navbar navbar-light bg-light">
@@ -42,17 +57,15 @@
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title" id="exampleModalLabel">Please enter email address</h5>
+                  <h5 class="modal-title" id="exampleModalLabel">Modal Label Title</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
-                        <input type="text" class="form-control" id="user-id" placeholder="placeholder@gmail.com">
-                        <small id="emailHelp" class="form-text text-muted">Please provide for version control</small>
-                    </form>
+                  <div id="cv-spinner"><span id="spinner"></span></div>
+                  <p id="modal-error-message">Sorry, the document currently can't be edited. Try again in a couple seconds.</p>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-primary" id="edit-request">Edit</button>
+                  <button type="button" class="btn btn-primary" id="edit-request">Try again</button>
                 </div>
               </div>
             </div>

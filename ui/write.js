@@ -12,9 +12,23 @@ $('textarea#tiny').tinymce({
       'bullist numlist outdent indent | removeformat | help',
     init_instance_callback: function(editor){
         if(sessionStorage.getItem('currentDocumentID')){
-            $.get("http://localhost:8080/document/"+sessionStorage.getItem('currentDocumentID'), function(data) {
-                $('input#docName').val(data.title); // set document title
-                editor.setContent(data.content);  // set document content
+            // $.get("http://localhost:8080/document/"+sessionStorage.getItem('currentDocumentID')+"?user="+"&edit=true", function(data) {
+            //     $('input#docName').val(data.title); // set document title
+            //     editor.setContent(data.content);  // set document content
+            // });
+            // this was easier than figuring out how to pass the object from read.js
+            $.ajax({
+                method: 'GET',
+                // assuming api call GET http://localhost:8080/document/6297e25965bdf90c83f73686?user=bbb&edit=true requests edit access
+                url: "http://localhost:8080/document/"+sessionStorage.getItem('currentDocumentID')+"?user="+sessionStorage.getItem('author')+"?edit=true",
+                success: function(){
+                    $('input#docName').val(data.title); // set document title
+                    editor.setContent(data.content);  // set document content
+                },
+                error: function(){
+                    alert("Sorry, something went wrong");
+                    window.location = './read.html';
+                },
             });
         }
     }
@@ -43,7 +57,7 @@ $('#editModeSwitch').on('change',function(){
 $('button#author-submit').on('click', function(){
     sessionStorage.setItem('author', $('input#user-id').val());
     modal2.modal('hide');
-})
+});
 
 $('button#save-ignore-close').on('click', function(){
     modal1.modal('hide');
@@ -65,7 +79,7 @@ $('button#ignore-changes').on('click', function(){
 });
 
 function saveDoc(name, content){
-    let requestUrl = 'http://localhost:8080/document/'+sessionStorage.getItem('currentDocumentID');
+    let requestUrl = 'http://localhost:8080/document/'+sessionStorage.getItem('currentDocumentID')+'?user='+sessionStorage.getItem("author");
     let docObj = {
         title: name,
         content: content
@@ -91,5 +105,11 @@ function saveDoc(name, content){
 }
 
 function returnToRead(){
-    window.location = './read.html';
+    $.ajax({
+        method: 'POST',
+        url: '/document/releaseLock/'+sessionStorage.getItem('currentDocumentID'),
+        complete: function(){
+            window.location = './read.html';
+        }
+    });
 }
