@@ -25,6 +25,7 @@ public class LeaderElectionService {
     public void electNewLeader() {
         int count = 0;
         for (Map.Entry<Integer, String> entry : nodesConfig.getNodeMap().entrySet()) {
+            // Send election message only to nodes with ID higher than self node ID
             if (entry.getKey() > nodesConfig.getSelf()) {
                 String uri = UriComponentsBuilder.newInstance()
                         .scheme("http").host(entry.getValue())
@@ -40,10 +41,11 @@ public class LeaderElectionService {
                 }
             }
         }
+        // If no accepted response received, elect itself as the leader
         if (count == 0) {
             log.info("Electing self: {} as the new leader.", nodesConfig.getSelf());
             nodesConfig.setNewLeader(nodesConfig.getSelf());
-            nodesConfig.createPingTimers();
+            // Inform other nodes of the new leader with elected message
             for (Map.Entry<Integer, String> entry : nodesConfig.getNodeMap().entrySet()) {
                 String url = UriComponentsBuilder.newInstance()
                         .scheme("http").host(entry.getValue())
@@ -55,7 +57,9 @@ public class LeaderElectionService {
                     log.info("Cannot connect to node: " + entry.getKey());
                 }
             }
-            // Update Leader in Load Balancer
+            // Create timers for expected pings from followers
+            nodesConfig.createPingTimers();
+            // Update new leader in Load Balancer
             String lbUrl = UriComponentsBuilder.newInstance()
                     .scheme("http").host(nodesConfig.getLoadBalancer())
                     .path(LB_LEADER_PATH).buildAndExpand(nodesConfig.getSelf()).toUriString();
