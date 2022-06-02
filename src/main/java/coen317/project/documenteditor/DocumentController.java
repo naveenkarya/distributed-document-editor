@@ -108,7 +108,6 @@ public class DocumentController {
     public ResponseEntity<Boolean> updateQueue(@PathVariable String documentId, @PathVariable String user, @PathVariable int fromNode) {
         boolean canEdit = false;
         log.info("IsLeader: {}", nodesConfig.isLeader());
-
         if (nodesConfig.isLeader()) {
             synchronized (locks.computeIfAbsent(documentId, doc -> new Object())) {
                 WordDocument wordDocument = documentRepository.findById(documentId).get();
@@ -137,18 +136,20 @@ public class DocumentController {
     public ResponseEntity<WordDocument> updateDocument(@PathVariable String documentId) {
         Optional<WordDocument> doc = documentRepository.findById(documentId);
         if (doc.isPresent()) {
-            WordDocument wordDocument = doc.get();
-            if(nodesConfig.getDocUserQueue().get(documentId).isEmpty()) {
-                wordDocument.setLocked(false);
-                wordDocument.setLockedBy(null);
+            synchronized (locks.computeIfAbsent(documentId, d -> new Object())) {
+                WordDocument wordDocument = doc.get();
+                if(nodesConfig.getDocUserQueue().get(documentId).isEmpty()) {
+                    wordDocument.setLocked(false);
+                    wordDocument.setLockedBy(null);
+                }
+                else {
+                    wordDocument.setLockedBy(nodesConfig.getNextUser(documentId));
+                    log.info("Queue updated to : {}", nodesConfig.getDocUserQueue().get(documentId));
+                }
+                documentRepository.save(wordDocument);
+                replicationService.replicate(wordDocument, documentId);
+                return ResponseEntity.ok().build();
             }
-            else {
-                wordDocument.setLockedBy(nodesConfig.getNextUser(documentId));
-                log.info("Queue updated to : {}", nodesConfig.getDocUserQueue().get(documentId));
-            }
-            documentRepository.save(wordDocument);
-            replicationService.replicate(wordDocument, documentId);
-            return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
     }
