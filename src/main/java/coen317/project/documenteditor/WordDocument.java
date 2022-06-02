@@ -3,33 +3,47 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Version;
+import lombok.ToString;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @Document
 @Getter
 @Setter
+@ToString
 public class WordDocument {
     @Id
     public String id;
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
 
     public String author;
 
     public String title;
 
     @CreatedDate
-    private Instant createdDate = Instant.now();
+    private LocalDate createdDate = LocalDate.now();
 
+    @LastModifiedDate
+    private LocalDate lastModified = LocalDate.now();
 
-    @Version
-    private Long version;
+//    @Version
+//    private Long version;
     public String content;
+    public boolean locked = false;
+    public String lockedBy;
 
     public WordDocument() {
     }
@@ -48,5 +62,9 @@ public class WordDocument {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }
